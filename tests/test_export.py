@@ -46,6 +46,11 @@ class TestToJson:
     def test_empty_list(self):
         assert json.loads(to_json([])) == []
 
+    def test_returns_string(self):
+        """Ensure to_json returns a str, not bytes."""
+        output = to_json([_make_record()])
+        assert isinstance(output, str)
+
 
 class TestToCsv:
     def test_header_row_present(self):
@@ -66,6 +71,15 @@ class TestToCsv:
         records = [_make_record(), _make_record(method="DELETE", status_code=204)]
         rows = list(csv.DictReader(io.StringIO(to_csv(records))))
         assert len(rows) == 2
+
+    def test_empty_list_returns_header_only(self):
+        """An empty record list should still produce a header row."""
+        output = to_csv([])
+        reader = csv.DictReader(io.StringIO(output))
+        # Consuming rows should yield nothing, but fieldnames should be defined.
+        rows = list(reader)
+        assert len(rows) == 0
+        assert reader.fieldnames is not None
 
 
 class TestToCurl:
@@ -88,3 +102,8 @@ class TestToCurl:
         records = [_make_record(), _make_record(method="POST", status_code=201)]
         output = to_curl(records)
         assert output.count("curl -X") == 2
+
+    def test_empty_list_returns_empty_string(self):
+        """to_curl with no records should return an empty string."""
+        output = to_curl([])
+        assert output == ""
