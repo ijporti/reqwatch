@@ -43,6 +43,14 @@ class TestAddTag:
         add_tag(r, "slow")
         assert get_tags(r) == []
 
+    def test_add_multiple_distinct_tags(self):
+        r = _make_record()
+        r2 = add_tag(r, "slow")
+        r3 = add_tag(r2, "error")
+        assert "slow" in get_tags(r3)
+        assert "error" in get_tags(r3)
+        assert len(get_tags(r3)) == 2
+
 
 class TestRemoveTag:
     def test_removes_existing_tag(self):
@@ -55,6 +63,11 @@ class TestRemoveTag:
         r = _make_record(metadata={"tags": ["error"]})
         r2 = remove_tag(r, "missing")
         assert get_tags(r2) == ["error"]
+
+    def test_original_record_unchanged_after_remove(self):
+        r = _make_record(metadata={"tags": ["slow", "error"]})
+        remove_tag(r, "slow")
+        assert "slow" in get_tags(r)
 
 
 class TestFilterByTag:
