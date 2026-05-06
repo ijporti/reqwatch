@@ -18,7 +18,14 @@ def mask_headers(
     keys: list[str] | None = None,
     mask: str = _DEFAULT_MASK,
 ) -> dict[str, str]:
-    """Return a copy of *headers* with sensitive values replaced by *mask*."""
+    """Return a copy of *headers* with sensitive values replaced by *mask*.
+
+    Args:
+        headers: The headers dict to process.
+        keys: Additional header names (case-insensitive) to mask beyond the
+            built-in sensitive key list.
+        mask: The replacement string for masked values.
+    """
     target = {k.lower() for k in (keys or [])} | _SENSITIVE_KEYS
     return {
         k: (mask if k.lower() in target else v)
@@ -31,7 +38,16 @@ def mask_body(
     patterns: list[str],
     mask: str = _DEFAULT_MASK,
 ) -> str:
-    """Replace all regex *patterns* found in *body* with *mask*."""
+    """Replace all regex *patterns* found in *body* with *mask*.
+
+    Args:
+        body: The body string to process. Returns an empty string if ``None``.
+        patterns: A list of regex patterns whose matches will be replaced.
+        mask: The replacement string for matched substrings.
+
+    Raises:
+        re.error: If any entry in *patterns* is not a valid regular expression.
+    """
     if not body:
         return body or ""
     result = body
