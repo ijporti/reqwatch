@@ -19,8 +19,16 @@ _DEFAULT_DIR = ".reqwatch_snapshots"
 
 
 def _load_store(path: str) -> RequestStore:
+    """Load a RequestStore from *path*, exiting with an error on failure."""
     store = RequestStore()
-    store.load(path)
+    try:
+        store.load(path)
+    except FileNotFoundError:
+        print(f"Store file '{path}' not found.", file=sys.stderr)
+        sys.exit(1)
+    except Exception as exc:  # noqa: BLE001
+        print(f"Failed to load store '{path}': {exc}", file=sys.stderr)
+        sys.exit(1)
     return store
 
 
@@ -98,5 +106,3 @@ def build_snapshot_parser(subparsers: argparse._SubParsersAction) -> None:
 
     dl = sub.add_parser("delete", help="Delete a named snapshot")
     dl.add_argument("name", help="Snapshot name")
-
-    p.set_defaults(func=cmd_snapshot)
