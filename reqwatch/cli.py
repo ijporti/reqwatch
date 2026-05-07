@@ -35,15 +35,27 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _load_store(path: str) -> RequestStore:
+    """Load a RequestStore from *path*, exiting with an error on failure."""
+    try:
+        return RequestStore.load(path)
+    except FileNotFoundError:
+        print(f"Error: store file not found: {path}", file=sys.stderr)
+        sys.exit(1)
+    except (ValueError, KeyError) as exc:
+        print(f"Error: failed to parse store file: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
 def cmd_replay(args: argparse.Namespace) -> None:
-    store = RequestStore.load(args.store)
+    store = _load_store(args.store)
     results = replay_all(store.records, base_url=getattr(args, "base_url", None))
     for result in results:
         print(result.summary())
 
 
 def cmd_list(args: argparse.Namespace) -> None:
-    store = RequestStore.load(args.store)
+    store = _load_store(args.store)
     records = store.records
     if args.method:
         records = [r for r in records if r.method.upper() == args.method.upper()]
@@ -55,7 +67,7 @@ def cmd_list(args: argparse.Namespace) -> None:
 
 
 def cmd_stats(args: argparse.Namespace) -> None:
-    store = RequestStore.load(args.store)
+    store = _load_store(args.store)
     stats = compute_stats(store.records)
     if args.as_json:
         data = {
